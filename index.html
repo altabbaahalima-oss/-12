@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دوائي - Dawaei</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root { --bg:#F9FAFB; --surface:#FFFFFF; --border:#E5E7EB; --green:#16A34A; --green-soft:#F0FDF4; --bg-soft:#F3F4F6; }
+body{font-family:'Tajawal',sans-serif;background:var(--bg)}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes in{from{opacity:0}to{opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect} = React;
+function App(){
+  const [tab,setTab]=useState('welcome');
+  const [isGuest,setIsGuest]=useState(false);
+  const [emergency,setEmergency]=useState(localStorage.getItem('emergency')||'');
+  const [beneficiary,setBeneficiary]=useState(localStorage.getItem('beneficiary')||'');
+  const [email,setEmail]=useState(localStorage.getItem('email')||'');
+  const [meds,setMeds]=useState([{id:1,name:'دواء الضغط',dose:'حبة واحدة',time:'08:00 صباحا',status:'قادم'},{id:2,name:'دواء السكر',dose:'حبتين',time:'01:00 ظهرا',status:'قادم'},{id:3,name:'فيتامين د',dose:'حبة',time:'09:00 مساء',status:'تم'}]);
+  const [alertMed,setAlertMed]=useState(null);
+  const [countdown,setCountdown]=useState(60);
+  const [toast,setToast]=useState('');
+
+  useEffect(()=>{
+    if(!alertMed) return;
+    if(countdown<=0){
+      setToast('⚠️ لم يتم الرد - يتم الاتصال بالطوارئ الآن');
+      if(emergency){ window.location.href=`tel:${emergency}`; }
+      setAlertMed(null); setCountdown(60); return;
+    }
+    const t=setTimeout(()=>setCountdown(c=>c-1),1000);
+    return ()=>clearTimeout(t);
+  },[alertMed,countdown,emergency]);
+
+  const triggerDemo=()=>{
+    setAlertMed(meds[0]); setCountdown(60);
+  };
+
+  const saveContacts=()=>{
+    localStorage.setItem('emergency',emergency);
+    localStorage.setItem('beneficiary',beneficiary);
+    localStorage.setItem('email',email);
+    setToast('✅ تم حفظ بيانات الطوارئ بنجاح');
+    setTimeout(()=>setToast(''),3000);
+  };
+
+  return (
+    <div className="min-h-screen max-w-[480px] mx-auto bg-white border-x border-[var(--border)] relative overflow-hidden flex flex-col">
+      {toast && <div className="fixed top-4 inset-x-4 z-[120] bg-[#1F2937] text-white rounded-[16px] px-4 py-3 text-center text-[15px] font-bold animate-[slideUp_0.3s_ease]">{toast}</div>}
+      
+      {tab==='welcome' && (
+        <div className="flex-1 flex flex-col p-6 animate-[in_0.3s_ease]">
+          <div className="mt-8 flex flex-col items-center">
+            <div className="w-[112px] h-[112px] rounded-[32px] bg-[#16A34A] flex items-center justify-center shadow-xl">
+              <span className="text-[48px]">💊</span>
+            </div>
+            <h1 className="mt-6 text-[32px] font-black text-[#1F2937]">دوائي</h1>
+            <p className="text-[#16A34A] font-bold">رفيقك الصحي</p>
+            <p className="mt-3 text-center text-[15px] text-gray-500 max-w-[300px]">تذكير آمن لأدوية كبار السن مع اتصال تلقائي بالطوارئ عند عدم الرد</p>
+          </div>
+          <div className="mt-8 space-y-3">
+            <div className="flex gap-3 bg-[#F0FDF4] border border-[#DCFCE7] rounded-2xl p-4"><span>🔔</span><div><p className="font-bold text-sm">تنبيهات ذكية</p><p className="text-xs text-gray-500">تذكير دقيق بموعد كل دواء</p></div></div>
+            <div className="flex gap-3 bg-[#FFFBEB]/70 border border-[#FEF3C7] rounded-2xl p-4"><span>📞</span><div><p className="font-bold text-sm">اتصال طوارئ تلقائي</p><p className="text-xs text-gray-500">في حال عدم الرد يتصل برقم الطوارئ</p></div></div>
+            <div className="flex gap-3 bg-[#F3F4F6] border border-[var(--border)] rounded-2xl p-4"><span>📧</span><div><p className="font-bold text-sm">تقرير يومي للعائلة</p><p className="text-xs text-gray-500">يرسل للبريد الإلكتروني كل يوم</p></div></div>
+          </div>
+          <div className="mt-auto pt-8 space-y-3">
+            <button onClick={()=>{setIsGuest(true); setTab('meds');}} className="w-full h-[56px] rounded-[18px] bg-[#16A34A] text-white font-black text-[17px]">الدخول كضيف وتجربة التطبيق</button>
+            <button onClick={()=>{setIsGuest(true); setTab('meds');}} className="w-full h-[52px] rounded-[18px] bg-white border-2 border-[#E5E7EB] font-bold">تسجيل الدخول</button>
+            <p className="text-center text-[11px] text-gray-400">يمكنك استخدام التطبيق بدون تسجيل دخول</p>
+          </div>
+        </div>
+      )}
+
+      {tab==='meds' && (
+        <div className="flex-1 flex flex-col">
+          <div className="sticky top-0 bg-white z-20 p-5 border-b">
+            <p className="text-sm text-gray-400">صباح الخير</p>
+            <h2 className="text-[22px] font-black">أبو أحمد 🌤️</h2>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="bg-[#F0FDF4] rounded-2xl p-3 text-center"><p className="text-[22px] font-black text-[#16A34A]">2</p><p className="text-[11px] text-gray-500">متبقي اليوم</p></div>
+              <div className="bg-[#F3F4F6] rounded-2xl p-3 text-center"><p className="text-[22px] font-black">1</p><p className="text-[11px] text-gray-500">تم</p></div>
+              <div className="bg-white border rounded-2xl p-3 text-center"><p className="text-[22px] font-black">75%</p><p className="text-[11px] text-gray-500">التزام</p></div>
+            </div>
+          </div>
+          <div className="flex-1 p-5 space-y-3 overflow-y-auto">
+            {meds.map(m=>(
+              <div key={m.id} className="bg-white border rounded-[20px] p-4 flex justify-between items-center">
+                <div><p className="font-bold">{m.name}</p><p className="text-xs text-gray-500 mt-1">{m.dose} • {m.time}</p></div>
+                <span className={`px-3 py-1 rounded-full text-[11px] font-bold ${m.status==='تم'?'bg-[#DCFCE7] text-[#16A34A]':m.status==='متأخر'?'bg-[#FEE2E2] text-[#DC2626]':'bg-[#DBEAFE] text-blue-600'}`}>{m.status}</span>
+              </div>
+            ))}
+            <button onClick={triggerDemo} className="w-full mt-4 h-[48px] rounded-xl border-2 border-dashed border-[#FED7AA] bg-[#FFFBEB]/70 font-bold text-[#F59E0B]">🧪 تجربة تنبيه وهمي (60 ثانية)</button>
+            <button onClick={()=>{setMeds(meds.map(x=>x.id===1?{...x,status:'تم'}:x)); setToast('✅ أحسنت! تم تسجيل الدواء'); setTimeout(()=>setToast(''),2000);}} className="w-full h-[60px] rounded-[18px] bg-[#16A34A] text-white font-black text-[18px] mt-2">✅ تم تناول الدواء</button>
+          </div>
+        </div>
+      )}
+
+      {tab==='emergency' && (
+        <div className="flex-1 p-5 space-y-5">
+          <h2 className="text-[22px] font-black">جهات الطوارئ</h2>
+          <div className="space-y-4">
+            <div><label className="text-[13px] font-bold text-gray-600">🚨 رقم الطوارئ (يتصل تلقائيا)</label><input value={emergency} onChange={e=>setEmergency(e.target.value)} placeholder="+966 5X XXX XXXX" className="mt-2 w-full h-[52px] rounded-[16px] border bg-[#F3F4F6] px-4 font-bold"/></div>
+            <div><label className="text-[13px] font-bold text-gray-600">👤 رقم المستفيد / كبير السن</label><input value={beneficiary} onChange={e=>setBeneficiary(e.target.value)} placeholder="+966 5X XXX XXXX" className="mt-2 w-full h-[52px] rounded-[16px] border bg-[#F3F4F6] px-4 font-bold"/></div>
+            <div><label className="text-[13px] font-bold text-gray-600">📧 البريد لإرسال التقرير اليومي</label><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="family@example.com" className="mt-2 w-full h-[52px] rounded-[16px] border bg-[#F3F4F6] px-4 font-bold"/></div>
+          </div>
+          <button onClick={saveContacts} className="w-full h-[56px] rounded-[18px] bg-[#1F2937] text-white font-black">حفظ البيانات</button>
+          <a href={emergency?`tel:${emergency}`:'#'} className="flex w-full h-[64px] rounded-[20px] bg-[#DC2626] text-white font-black text-[18px] items-center justify-center gap-2">📞 اتصال طوارئ مباشر</a>
+          <div className="bg-[#F3F4F6] rounded-2xl p-4"><p className="font-bold text-sm">سجل التقارير</p><p className="text-xs text-gray-500 mt-2">• تم إرسال تقرير اليوم 08:00 ص - تم تناول دواء الضغط ✅</p></div>
+        </div>
+      )}
+
+      {alertMed && (
+        <div className="fixed inset-0 z-[100] bg-black/40 flex items-end justify-center p-4">
+          <div className="w-full max-w-[480px] bg-white rounded-t-[32px] p-6 animate-[slideUp_0.35s_cubic-bezier(.2,.8,.2,1)]">
+            <div className={`w-full h-1 rounded-full mb-4 ${countdown<15?'bg-[#DC2626] animate-[pulse_1.5s_infinite]':'bg-[#16A34A]'}`} style={{width:`${(countdown/60)*100}%`}}></div>
+            <h3 className="text-[22px] font-black text-center">حان وقت الدواء 💊</h3>
+            <p className="text-center font-bold mt-1">{alertMed.name} - {alertMed.dose}</p>
+            <p className="text-center text-[#DC2626] font-black mt-3 text-[32px]">{countdown} ثانية</p>
+            <p className="text-center text-xs text-gray-500">إذا لم ترد سيتم الاتصال برقم الطوارئ تلقائيا</p>
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button onClick={()=>{setAlertMed(null); setCountdown(60); setMeds(meds.map(x=>x.id===alertMed.id?{...x,status:'تم'}:x)); setToast('✅ تم');}} className="h-[56px] rounded-[16px] bg-[#16A34A] text-white font-black">نعم تناولته</button>
+              <button onClick={()=>setCountdown(c=>Math.min(60,c+600))} className="h-[56px] rounded-[16px] bg-[#F3F4F6] font-bold">ذكرني بعد 10 دقائق</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="sticky bottom-0 bg-white border-t flex h-[72px] z-30">
+        <button onClick={()=>setTab('welcome')} className={`flex-1 flex flex-col items-center justify-center gap-1 ${tab==='welcome'?'text-[#16A34A]':''}`}><span>🏠</span><span className="text-[11px] font-bold">الرئيسية</span></button>
+        <button onClick={()=>setTab('meds')} className={`flex-1 flex flex-col items-center justify-center gap-1 ${tab==='meds'?'text-[#16A34A]':''}`}><span>💊</span><span className="text-[11px] font-bold">أدويتي</span></button>
+        <button onClick={()=>setTab('emergency')} className={`flex-1 flex flex-col items-center justify-center gap-1 ${tab==='emergency'?'text-[#DC2626]':''}`}><span>🚨</span><span className="text-[11px] font-bold">الطوارئ</span></button>
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
